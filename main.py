@@ -10,6 +10,7 @@ from models import ModelManager
 from evaluation import Evaluator
 
 def setup_logging():
+    """Setup logging configuration"""
     if not os.path.exists('logs'):
         os.makedirs('logs')
     
@@ -18,12 +19,13 @@ def setup_logging():
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(f'logs/qa_system_{timestamp}.log'),
+            logging.FileHandler(f'logs/tourism_qa_{timestamp}.log'),
             logging.StreamHandler(sys.stdout)
         ]
     )
 
 def save_results(results, model_name, output_dir):
+    """Save evaluation results to JSON file"""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
@@ -36,12 +38,14 @@ def save_results(results, model_name, output_dir):
     logging.info(f"Results saved to {filename}")
 
 def cleanup_gpu():
+    """Clean up GPU memory"""
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         gc.collect()
 
 def main():
     setup_logging()
+    logging.info("Starting Tourism QA System")
     
     try:
         # Initialize components
@@ -56,9 +60,9 @@ def main():
         
         # Prepare data
         logging.info("Starting data preparation...")
-        csv_path = 'data/tourism_guides.csv'
+        csv_path = 'tourism_guides.csv'
         if not os.path.exists(csv_path):
-            raise FileNotFoundError(f"Could not find {csv_path}")
+            raise FileNotFoundError(f"Tourism guides file not found at {csv_path}")
         
         train_data, val_data, test_data = data_prep.prepare_tourism_data(
             csv_path,
@@ -67,7 +71,7 @@ def main():
         )
         
         if train_data is None or val_data is None or test_data is None:
-            raise ValueError("Data preparation failed")
+            raise ValueError("Data preparation failed - check the data format and content")
         
         logging.info(f"Data split sizes - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
         
@@ -76,16 +80,18 @@ def main():
         model_manager.initialize_models()
         
         if not model_manager.models:
-            raise ValueError("No models were successfully loaded")
+            raise ValueError("No models were successfully loaded - check model configurations")
         
         # Train and evaluate each model
         results = {}
         for model_name, model in model_manager.models.items():
             try:
-                logging.info(f"\nTraining and evaluating model: {model_name}")
+                logging.info(f"\nProcessing model: {model_name}")
+                logging.info("=" * 50)
                 model_output_dir = os.path.join(output_dir, model_name)
                 
-                # Training
+                # Training phase
+                logging.info(f"Training {model_name}...")
                 trainer = model_manager.train_model(
                     model_name,
                     train_data,
@@ -94,13 +100,13 @@ def main():
                 )
                 
                 if trainer is None:
-                    logging.error(f"Training failed for {model_name}")
+                    logging.error(f"Training failed for {model_name} - skipping evaluation")
                     continue
                 
                 # Clean up GPU memory after training
                 cleanup_gpu()
                 
-                # Evaluation
+                # Evaluation phase
                 logging.info(f"Evaluating {model_name}...")
                 model_results, detailed_results = evaluator.evaluate_model(
                     model_manager.models[model_name],
@@ -113,8 +119,13 @@ def main():
                     'detailed_results': detailed_results
                 }
                 
-                # Save results
+                # Save individual model results
                 save_results(results[model_name], model_name, model_output_dir)
+                
+                # Print current model results
+                logging.info(f"\nResults for {model_name}:")
+                for metric, score in model_results.items():
+                    logging.info(f"{metric}: {score:.4f}")
                 
                 # Clean up GPU memory after evaluation
                 cleanup_gpu()
@@ -123,18 +134,27 @@ def main():
                 logging.error(f"Error processing model {model_name}: {str(e)}")
                 continue
         
-        # Print final results
+        # Print comparative results
         if results:
-            logging.info("\nFinal Results:")
+            logging.info("\nComparative Model Results:")
+            logging.info("=" * 50)
+            
+            # Create a formatted table header
+            metrics = next(iter(results.values()))['metrics'].keys()
+            header = "Model".ljust(15) + " | " + " | ".join(str(m).ljust(10) for m in metrics)
+            logging.info(header)
+            logging.info("-" * len(header))
+            
+            # Print each model's results
             for model_name, model_results in results.items():
-                logging.info(f"\n{model_name}:")
-                for metric, score in model_results['metrics'].items():
-                    logging.info(f"{metric}: {score:.4f}")
+                scores = [f"{score:.4f}".ljust(10) for score in model_results['metrics'].values()]
+                logging.info(f"{model_name.ljust(15)} | {' | '.join(scores)}")
         else:
-            logging.warning("No results were generated. All models failed to process.")
+            logging.warning("No results were generated - all models failed to process")
         
         # Clean up
         model_manager.cleanup()
+        logging.info("\nProcessing completed successfully")
         
     except Exception as e:
         logging.error(f"Critical error in main execution: {str(e)}")

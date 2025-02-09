@@ -6,6 +6,10 @@ import gc
 from tqdm import tqdm
 import numpy as np
 import re
+from nltk.corpus import stopwords
+import nltk
+
+nltk.download('stopwords')
 
 class QADataset(Dataset):
     def __init__(self, data, tokenizer, max_length=384):
@@ -13,6 +17,7 @@ class QADataset(Dataset):
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.max_answer_length = 100
+        self.stopwords = set(stopwords.words('english'))
     
     def clean_text(self, text):
         """Clean text for better processing"""
@@ -20,15 +25,6 @@ class QADataset(Dataset):
         text = re.sub(r'\s+', ' ', text)  # Normalize whitespace
         text = text.replace('##', '')  # Remove BERT artifacts
         return text
-    
-    def get_stopwords(self):
-        """Get Croatian stopwords"""
-        return {
-            'i', 'u', 'je', 'na', 'se', 'da', 'za', 'su', 'od', 's', 'o', 'a', 
-            'koji', 'što', 'te', 'iz', 'ali', 'tako', 'ili', 'kad', 'biti', 
-            'kako', 'kao', 'kroz', 'do', 'pri', 'mi', 'još', 'po', 'samo', 
-            'mogu', 'već', 'sve', 'također'
-        }
     
     def find_answer_span(self, context, answer):
         """Find the best concise answer span in context"""
@@ -44,7 +40,7 @@ class QADataset(Dataset):
         # Try to find the most concise answer that contains the key information
         answer_words = set(answer.split())
         key_words = {word for word in answer_words 
-                    if len(word) > 3 and word not in self.get_stopwords()}
+                    if len(word) > 3 and word not in self.stopwords}
         
         best_start = -1
         best_end = -1
@@ -137,8 +133,11 @@ class ModelManager:
     def initialize_models(self):
         """Initialize models with memory-efficient settings"""
         model_configs = {
-            'mBERT': 'bert-base-multilingual-cased',
-            'XLM-RoBERTa': 'xlm-roberta-base'
+            'BERT': 'bert-base-uncased',
+            'RoBERTa': 'roberta-base',
+            'DistilBERT': 'distilbert-base-uncased',
+            'ALBERT': 'albert-base-v2',
+            'DeBERTa': 'microsoft/deberta-base'
         }
         
         for name, path in model_configs.items():
@@ -184,46 +183,42 @@ class ModelManager:
             train_dataset = QADataset(train_data, tokenizer)
             val_dataset = QADataset(val_data, tokenizer)
             
-            # Even more aggressive memory optimization for XLM-RoBERTa
-            if model_name == 'XLM-RoBERTa':
-                batch_size = 1
-                grad_accum = 64
-                max_length = 128  # Further reduce max sequence length
-                model.config.max_position_embeddings = 128  # Limit position embeddings
-                torch.cuda.empty_cache()  # Clear GPU memory
+            # Model-specific batch sizes and settings
+            if model_name in ['DeBERTa', 'RoBERTa']:
+                batch_size = 8
+                grad_accum = 4
             else:
-                batch_size = 2
-                grad_accum = 8
-                max_length = 384
+                batch_size = 16
+                grad_accum = 2
             
             # Training arguments with better memory management
             training_args = TrainingArguments(
                 output_dir=output_dir,
-                num_train_epochs=5,  # Increased epochs for better learning
+                num_train_epochs=3,
                 per_device_train_batch_size=batch_size,
                 per_device_eval_batch_size=batch_size,
                 gradient_accumulation_steps=grad_accum,
-                learning_rate=3e-5,  # Slightly increased learning rate
+                learning_rate=2e-5,
                 warmup_ratio=0.1,
                 weight_decay=0.01,
                 logging_dir='./logs',
-                logging_steps=10,
-                eval_steps=25,
-                save_steps=25,
+                logging_steps=50,
+                eval_steps=100,
+                save_steps=100,
                 evaluation_strategy="steps",
                 save_strategy="steps",
                 load_best_model_at_end=True,
-                save_total_limit=1,
+                save_total_limit=2,
                 report_to="none",
                 remove_unused_columns=False,
                 fp16=True if torch.cuda.is_available() else False,
                 gradient_checkpointing=True,
-                dataloader_num_workers=0,
-                dataloader_pin_memory=False,
+                dataloader_num_workers=4,
+                dataloader_pin_memory=True,
                 metric_for_best_model="eval_loss",
                 greater_is_better=False,
-                max_grad_norm=1.0,  # Add gradient clipping
-                optim="adamw_torch"  # Use PyTorch's AdamW
+                max_grad_norm=1.0,
+                optim="adamw_torch"
             )
             
             # Clear cache before training

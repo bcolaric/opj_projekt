@@ -10,31 +10,28 @@ from typing import Dict, List, Union
 import string
 
 nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 class Evaluator:
     def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Evaluator using device: {self.device}")
         
-        # Custom Croatian stopwords list
-        self.stopwords = {
-            'i', 'u', 'je', 'na', 'se', 'da', 'za', 'su', 'od', 's', 'o', 'a', 'koji',
-            'što', 'te', 'iz', 'ali', 'tako', 'ili', 'kad', 'biti', 'kako', 'kao', 'kroz',
-            'do', 'pri', 'mi', 'još', 'po', 'samo', 'mogu', 'već', 'sve', 'također',
-            'gdje', 'vrijeme', 'nije', 'bi', 'bio', 'bila', 'bilo', 'će', 'će biti',
-            'će imati', 'zbog', 'prema', 'joj', 'ih', 'ga', 'tim', 'tom', 'to', 'taj',
-            'ova', 'ovaj', 'ovo', 'uz', 'neke', 'neki', 'neka', 'ako', 'li', 'jer',
-            'nego', 'dok', 'smo', 'više', 'vrlo', 'koja', 'koje', 'koji', 'oko'
-        }
+        # English stopwords from NLTK
+        self.stopwords = set(stopwords.words('english'))
         
         # Tourism-related keywords for relevance scoring
         self.tourism_keywords = {
-            'hotel', 'restoran', 'muzej', 'plaža', 'znamenitost', 'atrakcija', 'izlet',
-            'tura', 'smještaj', 'transport', 'grad', 'otok', 'park', 'jezero', 'more',
-            'planina', 'crkva', 'katedrala', 'palača', 'tvrđava', 'dvorac', 'festival',
-            'kultura', 'povijest', 'arhitektura', 'turisti', 'posjetitelji', 'nacionalni',
-            'park', 'spomenik', 'galerija', 'trg', 'ulica', 'šetnica', 'priroda',
-            'baština', 'tradicija', 'hrana', 'vino', 'smještaj', 'vođenje', 'razgled'
+            'hotel', 'restaurant', 'museum', 'beach', 'landmark', 'attraction', 'tour',
+            'excursion', 'accommodation', 'transport', 'city', 'island', 'park', 'lake',
+            'sea', 'mountain', 'church', 'cathedral', 'palace', 'fortress', 'castle',
+            'festival', 'culture', 'history', 'architecture', 'tourists', 'visitors',
+            'national', 'park', 'monument', 'gallery', 'square', 'street', 'promenade',
+            'nature', 'heritage', 'tradition', 'food', 'wine', 'lodging', 'guide',
+            'sightseeing', 'view', 'historic', 'ancient', 'medieval', 'modern',
+            'experience', 'destination', 'travel', 'vacation', 'holiday', 'scenic',
+            'UNESCO', 'heritage', 'site', 'traditional', 'local', 'authentic'
         }
 
     def find_best_answer(self, start_logits: torch.Tensor, end_logits: torch.Tensor, 
@@ -69,7 +66,7 @@ class Evaluator:
                     # Validate answer quality
                     if (len(answer.split()) >= 2 and  # At least 2 words
                         not answer.startswith('?') and  # Not a question
-                        not any(answer.lower().startswith(w) for w in ['što', 'gdje', 'kada', 'tko'])):
+                        not any(answer.lower().startswith(w) for w in ['what', 'where', 'when', 'who', 'how', 'why'])):
                         
                         best_score = score
                         best_answer = answer
@@ -177,8 +174,8 @@ class Evaluator:
             ref_numbers = set(re.findall(r'\d+(?:,\d+)*(?:\.\d+)?', reference))
             
             # Extract capitalized words (potential named entities)
-            pred_entities = set(re.findall(r'[A-ZČĆĐŠŽ][a-zčćđšž]+', prediction))
-            ref_entities = set(re.findall(r'[A-ZČĆĐŠŽ][a-zčćđšž]+', reference))
+            pred_entities = set(re.findall(r'[A-Z][a-z]+', prediction))
+            ref_entities = set(re.findall(r'[A-Z][a-z]+', reference))
             
             # Calculate accuracy scores
             number_accuracy = (len(pred_numbers & ref_numbers) / len(ref_numbers) 
@@ -271,7 +268,7 @@ class Evaluator:
         pred = re.sub(r'<s>|</s>|\[CLS\]|\[SEP\]|\[PAD\]', '', pred)
         
         # Remove the question if it was included in the answer
-        pred = re.sub(r'^(Što|Gdje|Kada|Tko|Kako|Zašto|Koliko).*\?', '', pred)
+        pred = re.sub(r'^(What|Where|When|Who|How|Why).*\?', '', pred)
         
         # Clean up whitespace
         pred = ' '.join(pred.split())

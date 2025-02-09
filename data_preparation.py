@@ -5,61 +5,74 @@ import re
 import nltk
 from nltk.tokenize import sent_tokenize
 import torch
+
 nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 class DataPreparator:
     def __init__(self):
-        # Croatian patterns for question generation
+        # Simplified English patterns for question generation
         self.patterns = [
             # Location patterns
-            (r'([^,\.]+) (?:se nalazi|je smješten[a]?) ([^,\.]+)',
-             lambda m: f"Gdje se nalazi {m.group(1)}?",
-             lambda m: f"{m.group(1)} {m.group(2)}"),
+            (r'(.*?) is located (.*?)(?:\.|$)',
+             lambda m: f"Where is {m.group(1)} located?",
+             lambda m: f"{m.group(1)} is located {m.group(2)}"),
             
-            # Description patterns
-            (r'([^,\.]+) je ([^,\.]+)',
-             lambda m: f"Što je {m.group(1)}?",
-             lambda m: f"{m.group(1)} je {m.group(2)}"),
+            # Description patterns - "is a/an"
+            (r'(.*?) is (?:a|an) (.*?)(?:\.|$)',
+             lambda m: f"What is {m.group(1)}?",
+             lambda m: f"{m.group(1)} is a {m.group(2)}"),
+            
+            # Description patterns - "is"
+            (r'(.*?) is (.*?)(?:\.|$)',
+             lambda m: f"What is {m.group(1)}?",
+             lambda m: f"{m.group(1)} is {m.group(2)}"),
             
             # Feature patterns
-            (r'([^,\.]+) (?:ima|sadrži|uključuje) ([^,\.]+)',
-             lambda m: f"Što {m.group(1)} ima?",
-             lambda m: f"{m.group(1)} ima {m.group(2)}"),
+            (r'(.*?) (?:has|contains|includes) (.*?)(?:\.|$)',
+             lambda m: f"What does {m.group(1)} have?",
+             lambda m: f"{m.group(1)} has {m.group(2)}"),
             
-            # Time/period patterns
-            (r'([^,\.]+) (?:se održava|traje) ([^,\.]+)',
-             lambda m: f"Kada se održava {m.group(1)}?",
-             lambda m: f"{m.group(1)} se održava {m.group(2)}"),
+            # Known for patterns
+            (r'(.*?) is known for (.*?)(?:\.|$)',
+             lambda m: f"What is {m.group(1)} known for?",
+             lambda m: f"{m.group(1)} is known for {m.group(2)}"),
             
-            # Characteristic patterns
-            (r'([^,\.]+) (?:poznat[a]? je|poznat[a]? po|karakterizira[ju]?) ([^,\.]+)',
-             lambda m: f"Po čemu je poznato {m.group(1)}?",
-             lambda m: f"{m.group(1)} je poznato po {m.group(2)}"),
+            # Famous for patterns
+            (r'(.*?) is famous for (.*?)(?:\.|$)',
+             lambda m: f"What is {m.group(1)} famous for?",
+             lambda m: f"{m.group(1)} is famous for {m.group(2)}"),
             
             # Number patterns
-            (r'([^,\.]+) (?:broji|ima|sadrži) (\d+[^,\.]+)',
-             lambda m: f"Koliko {m.group(2)} ima {m.group(1)}?",
-             lambda m: f"{m.group(1)} ima {m.group(2)}")
+            (r'(.*?) has (\d+.*?)(?:\.|$)',
+             lambda m: f"How many {m.group(2)} does {m.group(1)} have?",
+             lambda m: f"{m.group(1)} has {m.group(2)}")
         ]
         
-        # Additional patterns for answer validation
-        self.invalid_starts = ['i', 'ili', 'te', 'a', 'ali', 'no', 'dok']
+        # English stopwords and invalid starts
+        self.stopwords = set(stopwords.words('english'))
+        self.invalid_starts = ['and', 'or', 'but', 'however', 'while', 'although']
         self.min_answer_words = 3
         self.max_answer_words = 50
 
     def custom_sentence_split(self, text):
-        """Enhanced sentence splitting for Croatian text"""
-        # Pre-process to handle common abbreviations
-        text = re.sub(r'(?<=\d)\s*\.\s*(?=\d)', '<DECIMAL>', text)  # Save decimal points
-        text = re.sub(r'(?<=\w)\s*\.\s*(?=[A-ZČĆĐŠŽ])', '.<SPLIT>', text)  # Mark sentence boundaries
+        """Enhanced sentence splitting for English text"""
+        # Pre-process abbreviations and special cases
+        text = re.sub(r'(?<=Dr)\.\s*(?=[A-Z])', '.<PCT>', text)
+        text = re.sub(r'(?<=Mr)\.\s*(?=[A-Z])', '.<PCT>', text)
+        text = re.sub(r'(?<=Mrs)\.\s*(?=[A-Z])', '.<PCT>', text)
+        text = re.sub(r'(?<=Ms)\.\s*(?=[A-Z])', '.<PCT>', text)
+        text = re.sub(r'(?<=St)\.\s*(?=[A-Z])', '.<PCT>', text)
         
-        # Split sentences
-        sentences = [s.strip() for s in text.split('<SPLIT>')]
+        # Use NLTK's sentence tokenizer
+        sentences = sent_tokenize(text)
         
-        # Post-process to restore decimal points
-        sentences = [s.replace('<DECIMAL>', '.') for s in sentences]
+        # Post-process to restore abbreviations
+        sentences = [s.replace('.<PCT>', '.') for s in sentences]
         
-        return [s for s in sentences if len(s.split()) >= 3]  # Filter very short sentences
+        # Filter out very short sentences
+        return [s.strip() for s in sentences if len(s.split()) >= 3]
 
     def is_valid_answer(self, answer):
         """Check if the answer is valid"""
@@ -76,7 +89,7 @@ class DataPreparator:
             return False
         
         # Check if contains question words
-        if any(q in answer.lower() for q in ['što', 'gdje', 'kada', 'tko', 'kako', 'zašto', 'koliko']):
+        if any(q in answer.lower() for q in ['what', 'where', 'when', 'who', 'how', 'why']):
             return False
         
         return True
@@ -95,7 +108,7 @@ class DataPreparator:
             # Generate QA pairs using patterns
             if len(sentence.split()) >= 5:  # Skip very short sentences
                 for pattern, q_gen, a_gen in self.patterns:
-                    matches = list(re.finditer(pattern, sentence))
+                    matches = list(re.finditer(pattern, sentence, re.IGNORECASE))
                     
                     for match in matches:
                         try:
@@ -143,16 +156,12 @@ class DataPreparator:
             qa_df = qa_df.sample(frac=1, random_state=42).reset_index(drop=True)
             
             # Split into train, validation, and test sets
-            train_size = 1 - test_size - val_size
-            
-            # First split: separate training data
             train_df, temp_df = train_test_split(
                 qa_df,
                 test_size=(test_size + val_size),
                 random_state=42
             )
             
-            # Second split: separate validation and test data
             val_df, test_df = train_test_split(
                 temp_df,
                 test_size=test_size/(test_size + val_size),
