@@ -194,7 +194,7 @@ class ModelManager:
             # Training arguments with better memory management
             training_args = TrainingArguments(
                 output_dir=output_dir,
-                num_train_epochs=3,
+                num_train_epochs=10,
                 per_device_train_batch_size=batch_size,
                 per_device_eval_batch_size=batch_size,
                 gradient_accumulation_steps=grad_accum,

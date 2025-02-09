@@ -99,9 +99,6 @@ class Evaluator:
             pred_tokens = word_tokenize(pred_norm)
             ref_tokens = word_tokenize(ref_norm)
             
-            # Exact match (after normalization)
-            exact_match = float(pred_norm == ref_norm)
-            
             # F1 score
             pred_set = set(pred_tokens)
             ref_set = set(ref_tokens)
@@ -127,7 +124,6 @@ class Evaluator:
             factual_accuracy = self.evaluate_factual_accuracy(prediction, reference)
             
             return {
-                'exact_match': exact_match,
                 'f1': f1,
                 'bleu': bleu,
                 'tourism_relevance': tourism_relevance,
@@ -140,7 +136,6 @@ class Evaluator:
             print(f"Reference: {reference}")
             print(f"Error: {str(e)}")
             return {
-                'exact_match': 0.0,
                 'f1': 0.0,
                 'bleu': 0.0,
                 'tourism_relevance': 0.0,
@@ -249,7 +244,7 @@ class Evaluator:
         
         # Calculate final metrics
         final_results = {}
-        for metric in ['exact_match', 'f1', 'bleu', 'tourism_relevance', 'factual_accuracy']:
+        for metric in ['f1', 'bleu', 'tourism_relevance', 'factual_accuracy']:
             values = [m[metric] for m in all_metrics]
             final_results[metric] = np.mean(values) if values else 0.0
         

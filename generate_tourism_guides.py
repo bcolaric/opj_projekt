@@ -85,6 +85,51 @@ tourism_guides = [
     },
     {
         "text": "Split, Croatia's second-largest city, is renowned for its 4th-century Diocletian's Palace. The palace was built as a residence for the Roman Emperor Diocletian and today forms the core of the city center. Within the palace walls stands the Cathedral of Saint Domnius, originally Diocletian's mausoleum. The Riva, Split's waterfront promenade, stretches along the harbor and is a popular spot for walking and socializing. Nearby, Marjan Hill is a protected area covered in Mediterranean vegetation, offering numerous walking trails and viewpoints."
+    },
+    {
+        "text": "Dubrovnik, Croatias 'Pearl of the Adriatic,' is famous for its medieval city walls, but beyond the main tourist attractions, the city offers hidden gems. Lokrum Island, just a short boat ride away, features a monastery, botanical gardens, and a saltwater lake known as the 'Dead Sea.' The city was a major filming location for Game of Thrones, and visitors can take guided tours to see spots like Fort Lovrijenac, which doubled as the Red Keep. For a breathtaking sunset, the Srđ Mountain cable car provides panoramic views of the Adriatic and nearby islands."
+    },
+    {
+        "text": "Split offers more than just Diocletians Palace. Marjan Forest Park, a protected area, is ideal for hiking and cycling, with viewpoints overlooking the city. Bačvice Beach is famous for picigin, a traditional ball game played in shallow waters. The citys vibrant nightlife includes wine bars, live music venues, and rooftop terraces with spectacular sea views. A ferry ride from Split leads to nearby islands such as Šolta, a lesser-known escape with stunning beaches and family-run olive groves."
+    },
+    {
+        "text": "Plitvice Lakes National Park is famous for its cascading waterfalls, but visitors can enhance their experience by taking different hiking routes. Route C covers the lower and upper lakes and takes about 4-6 hours, while Route K is a full-day trek around the entire park. The best times to visit are early spring or late autumn when the crowds are smaller and the colors are most vibrant. The village of Rastovača, just outside the park, offers local homestays with traditional Croatian meals."
+    },
+    {
+        "text": "Rovinjs Old Town is a maze of cobbled streets leading to St. Euphemias Church, but beyond the main tourist areas, the Golden Cape (Zlatni Rt) is a coastal nature reserve perfect for cycling and swimming. The town is also known for its artist colony, with galleries and open-air studios selling local artwork. Rovinjs archipelago of 14 islands includes Red Island, which has secluded beaches and walking trails, making it a perfect day trip from the town center."
+    },
+    {
+        "text": "Zadars Sea Organ and Sun Salutation are modern attractions, but the city also has a rich history. The 9th-century St. Donatus Church sits atop the remains of a Roman forum. The Archaeological Museum showcases artifacts from the Illyrian, Roman, and medieval periods. For an authentic Dalmatian dining experience, visitors can explore local konobas (taverns) serving marinated anchovies, octopus salad, and black risotto. The nearby island of Ugljan, known as 'the green island,' is a short ferry ride away and offers hiking trails and hidden coves."
+    },
+    {
+        "text": "Sinj is famous for the Sinjska Alka, a traditional knights' tournament held every August since 1715. Competitors on horseback attempt to pierce a hanging metal ring with a lance. The town also has the Church of Our Lady of Sinj, an important pilgrimage site. The nearby Cetina River offers rafting and canoeing opportunities, making Sinj a great mix of history and adventure."
+    },
+    {
+        "text": "Vukovar, located along the Danube River, is a city of resilience and remembrance. The Vukovar Water Tower, preserved in its war-damaged state, is a symbol of the citys resistance. The Memorial Cemetery and the Ovčara Memorial Center provide insight into Croatias recent history. Vučedol Culture Museum showcases archaeological discoveries from one of Europes oldest civilizations."
+    },
+    {
+        "text": "Pelješac Peninsula is Croatias wine region, home to famous Dingač and Postup wines. The town of Ston boasts Europes longest defensive walls and some of the best oysters in the country, cultivated in the Mali Ston Bay. The peninsulas pristine beaches, such as Divna and Prapratno, make it an alternative to more crowded Adriatic destinations."
+    },
+    {
+        "text": "Lastovo Island, one of Croatias most remote islands, is part of a protected nature park. It has only one major village, preserving its authentic Mediterranean atmosphere. The islands fumari (chimneys) are unique architectural features. Due to minimal light pollution, Lastovo is a prime location for stargazing."
+    },
+    {
+        "text": "Gorski Kotar, known as 'Croatias Green Heart,' is an untouched mountainous region with dense forests, waterfalls, and wildlife. Risnjak National Park is home to lynxes, bears, and wolves. The Zeleni Vir and Vražji Prolaz canyons offer dramatic landscapes and easy hiking trails. This area is perfect for visitors looking for nature and tranquility."
+    },
+    {
+        "text": "Medvednica Mountain, located just north of Zagreb, offers year-round outdoor activities. The medieval Medvedgrad Fortress provides a stunning view of Zagreb. The Veternica Cave, one of Croatias largest caves, is home to 18 species of bats. During winter, Sljeme ski resort attracts skiers and snowboarders."
+    },
+    {
+        "text": "Korčula Island is known for its medieval architecture and its connection to the explorer Marco Polo. The town of Korčula is a well-preserved example of Venetian Gothic architecture, with narrow streets designed in a herringbone pattern to protect against wind. The island's traditional Moreska sword dance is performed during festivals."
+    },
+    {
+        "text": "Krk Island is the largest island in Croatia and is connected to the mainland by a bridge. The town of Vrbnik is famous for its narrow alleyways and wine production. Baška Beach is one of the most beautiful beaches on the Adriatic. The island also has historic monasteries and the medieval town of Omišalj."
+    },
+    {
+        "text": "Vis Island is the farthest inhabited island from the Croatian mainland and is known for its unspoiled nature and rich history. The town of Komiža features traditional fishermen's houses and the Fishermen's Museum, which is housed in a sixteenth-century Venetian tower. Stiniva Beach, accessible only by boat or a steep hike, is one of the most picturesque beaches in Europe."
+    },
+    {
+        "text": "The Blue Cave on Biševo Island is a natural sea grotto famous for its ethereal blue glow. The cave is twenty-four meters long, twelve meters high, and up to fifteen meters wide. The magical blue light effect occurs between eleven in the morning and noon when sunlight reflects through an underwater opening."
     }
 ]
 
